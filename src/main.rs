@@ -1,7 +1,6 @@
 mod block;
 mod user;
 mod network;
-
 use user::UserDB;
 use network::Network;
 
@@ -11,6 +10,7 @@ fn main() {
 
     let addr_a = user_db.add_user("A", 1000);
     let addr_b = user_db.add_user("B", 1000);
+    let addr_c = user_db.add_user("C", 1000);
     
     user_db.get_balance(&addr_a);
 
@@ -20,7 +20,14 @@ fn main() {
         println!("거래 실패");
     }
 
+    user_db.approve(&mut network, &addr_a, &addr_b, 300);
+    user_db.allowance(&addr_a, &addr_b);
+
+    user_db.transfer_from(&mut network, &addr_b, &addr_a, &addr_c, 300);
+
     user_db.get_balance(&addr_a);
+    user_db.get_balance(&addr_b);
+    user_db.get_balance(&addr_c);
 
     network.print_chain();
 }
