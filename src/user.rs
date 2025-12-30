@@ -3,6 +3,7 @@ use rand::SeedableRng;
 use secp256k1::{Secp256k1, SecretKey, PublicKey};
 use tiny_keccak::{Hasher, Keccak};
 use hex;
+use std::collections::HashMap;
 
 use crate::network::Network;
 
@@ -15,7 +16,8 @@ fn keccak256(input: &[u8]) -> [u8; 32] {
     output
 }
 
-#[derive(Debug)]
+// key는 wallet 메서드로 분류할 예정.
+#[derive(Debug, PartialEq)]
 pub struct User {
     pub name: String,
     pub address: String,
@@ -58,49 +60,66 @@ impl User {
     }
 }
 
+/*
+Vec -> HashMap
+
+실제 이더리움에서는 Trie 사용. (접두사로 관리)
+
+그러나 소형 프로젝트이므로 HashMap 채택
+*/
+
+// 실제 이더리움에서 State 관리하는 방법 채택
 #[derive(Debug)]
 pub struct UserDB {
-    users: Vec<User>,
+    users: HashMap<String, User>,
 }
 
 impl UserDB {
     pub fn new() -> Self {
-        UserDB { users: vec![] }
+        UserDB {
+            users: HashMap::new(),
+        }
     }
 
     pub fn add_user(&mut self, name: &str, balance: u64) -> String {
         let new_user = User::new_random(name, balance);
         let addr = new_user.address.clone();
-        self.users.push(new_user);
+
+        // self.users.push(new_user);
+        self.users.insert(addr.clone(), new_user);
+
         println!("사용자 추가됨: {} (address: {})", name, &addr);
         return addr;
     }
 
     pub fn execute_trade(&mut self, network: &mut Network ,from_addr: &str, to_addr: &str, amount: u64) -> bool {
-        let from_idx = match self.users.iter().position(|u| u.address == from_addr) {
-            Some(idx) => idx,
-            None => return false,
-        };
-
-        let to_idx = match self.users.iter().position(|u| u.address == to_addr) {
-            Some(idx) => idx,
-            None => return false,
-        };
-
-        if from_idx == to_idx {
+        // Check preconditions before borrowing
+        if from_addr == to_addr {
             println!("송신자와 수신자가 같습니다.");
             return false;
         }
 
-        if self.users[from_idx].balance < amount {
+        // Verify both users exist and from_user has sufficient balance
+        if !self.users.contains_key(from_addr) || !self.users.contains_key(to_addr) {
+            return false;
+        }
+
+        if self.users[from_addr].balance < amount {
             println!("잔액이 부족합니다.");
             return false;
         }
 
-        self.users[from_idx].balance -= amount;
-        self.users[to_idx].balance += amount;
+        // Get the names before modifying
+        let from_name = self.users[from_addr].name.clone();
+        let to_name = self.users[to_addr].name.clone();
 
-        let transaction = format!("거래: {} -> {} | 양: {}", self.users[from_idx].name, self.users[to_idx].name, amount);
+        // Now perform the transfer
+        self.users.get_mut(from_addr).unwrap().balance -= amount;
+        self.users.get_mut(to_addr).unwrap().balance += amount;
+
+        let transaction = format!(
+            "거래: {} -> {} | 양: {}", from_name, to_name, amount
+        );
         network.add_block(&transaction);
 
         return true;
@@ -108,7 +127,7 @@ impl UserDB {
 
     pub fn get_balance(&self, user_addr: &str) {
         println!("============ 잔고 ===========\n");
-        match self.users.iter().find(|u| u.address == user_addr) {
+        match self.users.get(user_addr) {
             Some(user) => {
                 println!("이름: {}", user.name);
                 println!("주소: {}", user.address);
