@@ -1,0 +1,14 @@
+[package]
+name = "erc20-core"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+hex.workspace = true
+rand.workspace = true
+secp256k1.workspace = true
+tiny-keccak.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+chrono.workspace = true
+sha2.workspace = true

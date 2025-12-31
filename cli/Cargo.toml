@@ -1,0 +1,11 @@
+[package]
+name = "erc20-cli"
+version = "0.1.0"
+edition = "2021"
+
+[[bin]]
+name = "erc20-cli"
+path = "src/main.rs"
+
+[dependencies]
+erc20-core = { path = "../core" }

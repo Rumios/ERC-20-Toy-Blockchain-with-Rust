@@ -1,4 +1,4 @@
-use crate::block::Block;  // block 모듈의 Block 가져옴
+use crate::block::Block;
 
 #[derive(Debug)]
 pub struct Network {
@@ -7,7 +7,7 @@ pub struct Network {
 
 impl Network {
     pub fn new() -> Self {
-        let genesis_block = Block::new(0, "Genesis Block", 0);
+        let genesis_block = Block::new(0, "Genesis Block", "0");
         Network {
             chain: vec![genesis_block],
         }
@@ -16,8 +16,9 @@ impl Network {
     pub fn add_block(&mut self, data: &str) {
         let previous_block = self.chain.last().unwrap();
         let new_index = previous_block.index + 1;
-        let previous_index = previous_block.index;
-        let new_block = Block::new(new_index, data, previous_index);
+        let prev_hash = &previous_block.prev_hash;
+
+        let new_block = Block::new(new_index, data, prev_hash);
         self.chain.push(new_block);
         println!("새로운 블록이 생성되었습니다: Index {}", new_index);
     }
@@ -27,7 +28,8 @@ impl Network {
         for block in &self.chain {
             println!("Index: {}", block.index);
             println!("Data: {}", block.data);
-            println!("Prev index: {}", block.previous_index);
+            println!("Prev hash: {}", block.prev_hash);
+            println!("Hash: {}", block.hash);
             println!("------------------------------");
         }
         println!("==============================\n");
