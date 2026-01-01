@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 
+use crate::consensus::pow::PowConsensus;
 use crate::network::Network;
 
 #[derive(Debug)]
@@ -45,7 +46,7 @@ impl WorldState {
         }
     }
 
-    pub fn approve(&mut self, network: &mut Network, owner: &str, spender: &str, amount: u64) -> bool{
+    pub fn approve(&mut self, network: &mut Network<PowConsensus>, owner: &str, spender: &str, amount: u64) -> bool{
         let fee = Self::calculate_fee(amount, "approve");
 
         if !self.balances.contains_key(owner) {
@@ -99,7 +100,7 @@ impl WorldState {
             .unwrap_or(0)
     }
 
-    pub fn transfer_from(&mut self, network: &mut Network, spender: &str, from_addr: &str, to_addr: &str, amount: u64) -> bool {
+    pub fn transfer_from(&mut self, network: &mut Network<PowConsensus>, spender: &str, from_addr: &str, to_addr: &str, amount: u64) -> bool {
         let fee = Self::calculate_fee(amount, "transfer_from");
 
         if !self.balances.contains_key(spender) {
@@ -165,7 +166,7 @@ impl WorldState {
         return true;
     }
 
-    pub fn execute_trade(&mut self, network: &mut Network, from_addr: &str, to_addr: &str, amount: u64) -> bool {
+    pub fn execute_trade(&mut self, network: &mut Network<PowConsensus>, from_addr: &str, to_addr: &str, amount: u64) -> bool {
         let fee = Self::calculate_fee(amount, "transfer");
 
         if from_addr == to_addr {

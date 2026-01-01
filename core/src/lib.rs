@@ -3,6 +3,8 @@ pub mod network;
 pub mod user;
 pub mod state;
 pub mod wallet;
+pub mod consensus;
+pub mod node;
 
 pub use block::Block;
 pub use network::Network;
